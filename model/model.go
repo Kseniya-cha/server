@@ -3,6 +3,8 @@ package model
 import (
 	"database/sql"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 // общий конфиг
@@ -49,4 +51,9 @@ type RefreshStreamWithNull struct {
 	Stream_status sql.NullBool
 	Record_state  sql.NullBool
 	Stream_state  sql.NullBool
+}
+
+type DBLog struct {
+	Db  *sql.DB
+	Log *logrus.Logger
 }

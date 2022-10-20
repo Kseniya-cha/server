@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Kseniya-cha/server/logger"
-	"github.com/sirupsen/logrus"
+	"github.com/Kseniya-cha/server/model"
 )
 
 // запуск сервера и обработка ошибок
-func RunServer(log *logrus.Logger, server *http.Server) {
+func RunServer(db model.DBLog, server *http.Server) {
 	errLAS := server.ListenAndServe()
 	if errLAS == http.ErrServerClosed {
-		logger.LogE(log, "server closed")
+		db.LogE("server closed")
 	} else if errLAS != nil {
-		logger.LogE(log, fmt.Sprintf("error listening for server: %s", errLAS))
+		db.LogE(fmt.Sprintf("error listening for server: %s", errLAS))
 	}
 }
