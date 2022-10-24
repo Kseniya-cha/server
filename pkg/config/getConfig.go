@@ -16,7 +16,7 @@ func GetConfig() *Config {
 	cfg = &Config{}
 
 	// чтение конфига
-	errrc := cleanenv.ReadConfig("config.yml", &cfg)
+	errRC := cleanenv.ReadConfig("config.yml", &cfg)
 
 	// логгер с функцией отложенного закрытия файла логирования
 	// log, closeLogFile := dblog.NewLog(cfg.LogLevel)
@@ -38,12 +38,8 @@ func GetConfig() *Config {
 	}
 
 	// проверка ошибки чтения конфига
-	if errrc != nil {
-		log.Fatal("can not read config")
-	}
-
-	if err != nil {
-		log.Fatalf("can not open file for logging")
+	if errRC != nil {
+		log.Fatal(constants.ReadConfigConst)
 	}
 
 	// возвращает объект *Config

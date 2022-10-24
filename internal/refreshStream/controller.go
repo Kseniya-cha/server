@@ -2,11 +2,11 @@ package refreshstream
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/Kseniya-cha/server/constants"
 	dblog "github.com/Kseniya-cha/server/pkg/DBLog"
@@ -74,150 +74,132 @@ func DeleteIdHF(ctx context.Context, db dblog.DBLog) func(http.ResponseWriter, *
 	}
 }
 
-// вставить строку
-// http://localhost:3333/api/post/auth/ip/stream/run/port/sp/cam/true/false/false/true/
-func PostHF(ctx context.Context, db dblog.DBLog) func(http.ResponseWriter, *http.Request) {
+// вставить строку с помощью json-файла
+func PostHFJSON(ctx context.Context, db dblog.DBLog) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		// извлечение значений из строки запроса -> map[string]string
-		colVals := mux.Vars(r)
+		// преобразование полученного json-файла и обработка ошибки
+		decoder := json.NewDecoder(r.Body)
+		var rs RefreshStreamWithNull
+		err := decoder.Decode(&rs)
+		db.LogWriteIF(w, err, "decode json")
 
 		allcols := constants.PostHFAllColsConst
 		allvalues := fmt.Sprintf(constants.PostHFAllValuesConst,
-			colVals["AUTH"], colVals["IP"], colVals["STREAM"], colVals["RUN"], colVals["PORTSRV"],
-			colVals["SP"], colVals["CAMID"], colVals["RECORD_STATUS"], colVals["STREAM_STATUS"],
-			colVals["RECORD_STATE"], colVals["STREAM_STATE"])
-		err := InsertContext(ctx, db, allcols, allvalues)
+			rs.Auth.String, rs.Ip.String, rs.Stream.String, rs.Run.String,
+			rs.Portsrv, rs.Sp.String, rs.Camid.String, rs.Record_status.Bool,
+			rs.Stream_status.Bool, rs.Record_state.Bool, rs.Stream_state.Bool)
+
+		// вставка данных и обработка ошибки
+		err = InsertContext(ctx, db, allcols, allvalues)
 		db.LogWriteIF(w, err, "insert")
 	}
 }
 
-// изменение всех колонок строки по id
-// http://localhost:3333/api/put/6/auth/ip/stream/run/port/sp/cam/true/false/false/true/
-func PutHF(ctx context.Context, db dblog.DBLog) func(http.ResponseWriter, *http.Request) {
+// вставить строку
+func PutHFJSON(ctx context.Context, db dblog.DBLog) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		// извлечение значений из строки запроса -> map[string]string
-		colVals := mux.Vars(r)
+		// преобразование полученного json-файла и обработка ошибки
+		decoder := json.NewDecoder(r.Body)
+		var rs RefreshStreamWithNull
+		err := decoder.Decode(&rs)
+		db.LogWriteIF(w, err, "decode json")
 
-		// преобразование id к типу int
-		idstr := colVals["ID"]
-		id, err := strconv.Atoi(idstr)
-		db.LogIFAction(err, constants.ConvIdIntConst)
+		id := rs.Id
 
-		for col, val := range colVals {
-			// названия колонок преобразуются к нижнему регистру
-			col = strings.ToLower(col)
+		err = UpdateContext(ctx, db, "auth", rs.Auth.String, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "ip", rs.Ip.String, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "stream", rs.Stream.String, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "run", rs.Run.String, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "portsrv", rs.Portsrv, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "sp", rs.Sp.String, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "camid", rs.Camid.String, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "record_status", rs.Record_status.Bool, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "stream_status", rs.Stream_status.Bool, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "record_state", rs.Record_state.Bool, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "stream_state", rs.Stream_state.Bool, id)
+		db.LogPrintFat(err)
 
-			// пропускается колонка с id
-			if col == "id" {
-				continue
-				// для колонок, значение которых должно быть Bool,
-				// сначала производится преобразование извлечённых
-				// из строки запроса данных
-			} else if col == constants.RecSttConst {
-				err := logParseUpdateBoolUp(id, col, val, colVals, ctx, db, w)
-				db.LogPrintFat(err)
-			} else if col == constants.StrSttConst {
-				err := logParseUpdateBoolUp(id, col, val, colVals, ctx, db, w)
-				db.LogPrintFat(err)
-			} else if col == constants.RecStatConst {
-				err := logParseUpdateBoolUp(id, col, val, colVals, ctx, db, w)
-				db.LogPrintFat(err)
-			} else if col == constants.StrStatConst {
-				err := logParseUpdateBoolUp(id, col, val, colVals, ctx, db, w)
-				db.LogPrintFat(err)
-			} else {
-				err := UpdateContext(ctx, db, col, val, id)
-				db.LogPrintFat(err)
-			}
-		}
 	}
 }
 
 // частичное изменение строки по id
-// http://localhost:3333/api/patch?id=125&auth=auth1&ip=10.2&stream=&run=&portsvr=poooort&sp=&camid=&record_status=true&stream_status=false&record_state=false&stream_state=true
-func PatchHF(ctx context.Context, db dblog.DBLog) func(http.ResponseWriter, *http.Request) {
+func PatchHFJSON(ctx context.Context, db dblog.DBLog) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		row := scanRow(r)
-		id, err := strconv.Atoi(row["id"])
-		db.LogIFAction(err, constants.ConvIdIntConst)
+		// преобразование полученного json-файла и обработка ошибки
+		decoder := json.NewDecoder(r.Body)
+		var rs RefreshStreamWithNull
+		err := decoder.Decode(&rs)
+		db.LogWriteIF(w, err, "decode json")
 
-		for col, val := range row {
-			// пропускается колонка с id
-			if col == "id" {
-				continue
-			} else if col == constants.RecSttConst && val != "" {
-				err := logParseUpdateBoolLow(id, col, val, ctx, db, w)
-				db.LogPrintFat(err)
-			} else if col == constants.StrSttConst && val != "" {
-				err := logParseUpdateBoolLow(id, col, val, ctx, db, w)
-				db.LogPrintFat(err)
-			} else if col == constants.RecStatConst && val != "" {
-				err := logParseUpdateBoolLow(id, col, val, ctx, db, w)
-				db.LogPrintFat(err)
-			} else if col == constants.StrStatConst && val != "" {
-				err := logParseUpdateBoolLow(id, col, val, ctx, db, w)
-				db.LogPrintFat(err)
-			} else {
-				err := UpdateContext(ctx, db, col, val, id)
-				db.LogPrintFat(err)
-			}
-		}
+		id := rs.Id
+
+		err = UpdateContext(ctx, db, "auth", rs.Auth.String, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "ip", rs.Ip.String, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "stream", rs.Stream.String, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "run", rs.Run.String, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "portsrv", rs.Portsrv, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "sp", rs.Sp.String, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "camid", rs.Camid.String, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "record_status", rs.Record_status.Bool, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "stream_status", rs.Stream_status.Bool, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "record_state", rs.Record_state.Bool, id)
+		db.LogPrintFat(err)
+		err = UpdateContext(ctx, db, "stream_state", rs.Stream_state.Bool, id)
+		db.LogPrintFat(err)
 	}
 }
 
-// преобразование строки к Bool, проверка ошибки, выполнение put-запроса
-// и сообщение об успешности выполнения функции
-func logParseUpdateBoolUp(id int, col, val string, colVals map[string]string,
-	ctx context.Context, db dblog.DBLog, w http.ResponseWriter) error {
+func RegisterRouter(router *mux.Router, db dblog.DBLog) {
+	ctx := context.Background()
 
-	sst, err := strconv.ParseBool(colVals[strings.ToUpper(col)])
-	if err != nil {
-		return err
-	}
+	// http://localhost:3333/
+	hfRoot := RootHF(db)
+	router.HandleFunc(constants.URLRootConst, hfRoot)
 
-	err = UpdateContext(ctx, db, col, sst, id)
-	if err != nil {
-		return err
-	}
+	// http://localhost:3333/api/get/
+	hfSelect := GetAllHF(ctx, db, true)
+	router.HandleFunc(constants.URLApiConst, hfSelect).Methods("GET")
 
-	return nil
-}
+	// http://localhost:3333/api/get/3/
+	hfGetId := GetIdHF(ctx, db, true)
+	router.HandleFunc(constants.URLGetDelIdConst, hfGetId).Methods("GET")
 
-// преобразование строки к Bool, проверка ошибки, выполнение patch-запроса
-// и сообщение об успешности выполнения функции
-func logParseUpdateBoolLow(id int, col, val string,
-	ctx context.Context, db dblog.DBLog, w http.ResponseWriter) error {
+	// http://localhost:3333/api/delete/3/
+	hfDeleteId := DeleteIdHF(ctx, db)
+	router.HandleFunc(constants.URLGetDelIdConst, hfDeleteId).Methods("DELETE")
 
-	sst, err := strconv.ParseBool(val)
-	if err != nil {
-		return err
-	}
+	hfPostJS := PostHFJSON(ctx, db)
+	router.HandleFunc(constants.URLApiConst,
+		hfPostJS).Methods("POST")
 
-	err = UpdateContext(ctx, db, col, sst, id)
-	if err != nil {
-		return err
-	}
+	hfPutJS := PutHFJSON(ctx, db)
+	router.HandleFunc(constants.URLApiConst,
+		hfPutJS).Methods("PUT")
 
-	return nil
-}
-
-func scanRow(r *http.Request) map[string]string {
-	return map[string]string{
-		"id":            r.URL.Query().Get("id"),
-		"auth":          r.URL.Query().Get("auth"),
-		"ip":            r.URL.Query().Get("ip"),
-		"stream":        r.URL.Query().Get("stream"),
-		"run":           r.URL.Query().Get("run"),
-		"portsrv":       r.URL.Query().Get("portsrv"),
-		"sp":            r.URL.Query().Get("sp"),
-		"camid":         r.URL.Query().Get("camid"),
-		"record_status": r.URL.Query().Get("record_status"),
-		"stream_status": r.URL.Query().Get("stream_status"),
-		"record_state":  r.URL.Query().Get("record_state"),
-		"stream_state":  r.URL.Query().Get("stream_state"),
-	}
+	hfPatchJS := PatchHFJSON(ctx, db)
+	router.HandleFunc(constants.URLApiConst,
+		hfPatchJS).Methods("PATCH")
 }
