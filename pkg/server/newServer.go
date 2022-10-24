@@ -1,11 +1,13 @@
-package model
+package server
 
 import (
 	"net/http"
+
+	"github.com/Kseniya-cha/server/pkg/config"
 )
 
 // инициализация сервера с параметрами из конфига
-func (cfg Config) NewServer(router http.Handler) *http.Server {
+func NewServer(cfg config.Config, router http.Handler) *http.Server {
 
 	return &http.Server{
 		Addr:         cfg.Addr,

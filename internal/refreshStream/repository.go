@@ -1,4 +1,4 @@
-package methods
+package refreshstream
 
 import (
 	"context"
@@ -6,24 +6,26 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Kseniya-cha/server/model"
+	"github.com/Kseniya-cha/server/constants"
+	dblog "github.com/Kseniya-cha/server/pkg/DBLog"
 )
 
-func SelectContextRS(ctx context.Context, db model.DBLog) ([]byte, error) {
+func SelectContextRS(ctx context.Context, db dblog.DBLog) ([]byte, error) {
 
-	rows, err := db.Db.QueryContext(ctx, `select * from public."refresh_stream"`)
+	rows, err := db.Db.QueryContext(ctx, constants.SelectContextRSQueryConst)
 	if err != nil {
 		return nil, err
 	}
-	db.LogIFAction(err, "sent query to database")
+
+	db.LogIFAction(err, constants.SelectContextRSRespConst)
 	defer rows.Close()
 
-	refreshStreamArr := []model.RefreshStreamWithNull{}
+	refreshStreamArr := []RefreshStreamWithNull{}
 
 	var json_data []byte
 	// var datas [][]byte
 	for rows.Next() {
-		rs := model.RefreshStreamWithNull{}
+		rs := RefreshStreamWithNull{}
 
 		err := rows.Scan(&rs.Id, &rs.Auth, &rs.Ip, &rs.Stream,
 			&rs.Run, &rs.Portsrv, &rs.Sp, &rs.Camid, &rs.Record_status,
@@ -39,22 +41,21 @@ func SelectContextRS(ctx context.Context, db model.DBLog) ([]byte, error) {
 	return json_data, nil
 }
 
-func GetIdContextRS(ctx context.Context, db model.DBLog,
+func GetIdContextRS(ctx context.Context, db dblog.DBLog,
 	value interface{}) ([]byte, error) {
 
-	rows, err := db.Db.QueryContext(ctx, fmt.Sprintf(`select * from public."refresh_stream" 
-	where %s=$1`, "id"), value)
+	rows, err := db.Db.QueryContext(ctx, fmt.Sprintf(constants.GetIdQueryConst, "id"), value)
 	if err != nil {
 		return nil, err
 	}
-	db.LogIFAction(err, "sent query to database")
+	db.LogIFAction(err, constants.GetIdContextActConst)
 	defer rows.Close()
 
-	refreshStreamArr := []model.RefreshStreamWithNull{}
+	refreshStreamArr := []RefreshStreamWithNull{}
 	var json_data []byte
 
 	for rows.Next() {
-		rs := model.RefreshStreamWithNull{}
+		rs := RefreshStreamWithNull{}
 
 		err := rows.Scan(&rs.Id, &rs.Auth, &rs.Ip, &rs.Stream,
 			&rs.Run, &rs.Portsrv, &rs.Sp, &rs.Camid, &rs.Record_status,
@@ -66,23 +67,22 @@ func GetIdContextRS(ctx context.Context, db model.DBLog,
 		db.LogPrintFat(err)
 		json_data, err = json.Marshal(rs)
 	}
-	db.LogI("database response accepted")
+	db.LogI(constants.GetIdContextRespConst)
 	return json_data, nil
 }
 
 // nameColumns записывать в виде `"col1", "col2"`,
 // values - в виде `'val1', 'val2'`
-func InsertContext(ctx context.Context, db model.DBLog,
+func InsertContext(ctx context.Context, db dblog.DBLog,
 	nameColumns string, values string) error {
 
 	valSlice := strings.Split(values, ", ")
 	if len(strings.Split(nameColumns, ", ")) != len(valSlice) {
-		db.LogF("more columns than values! insert break")
-		return fmt.Errorf("more columns than values! insert break")
+		db.LogF(constants.InsertRespErrConst)
+		return fmt.Errorf(constants.InsertRespErrConst)
 	}
 
-	_, err := db.Db.ExecContext(ctx, fmt.Sprintf(`insert into public."refresh_stream"(%s)
-	values(%s)`, nameColumns, values))
+	_, err := db.Db.ExecContext(ctx, fmt.Sprintf(constants.InsertQueryConst, nameColumns, values))
 	if err != nil {
 		return err
 	}
@@ -90,26 +90,24 @@ func InsertContext(ctx context.Context, db model.DBLog,
 }
 
 // изменяет одну ячейку
-func UpdateContext(ctx context.Context, db model.DBLog, setCol string,
+func UpdateContext(ctx context.Context, db dblog.DBLog, setCol string,
 	setValue, whereValue interface{}) error {
 
-	_, err := db.Db.ExecContext(ctx, fmt.Sprintf(`update public."refresh_stream"
-	set %s=$2 where "id"=$1`, setCol), whereValue, setValue)
+	_, err := db.Db.ExecContext(ctx, fmt.Sprintf(constants.UpdateQueryConst, setCol), whereValue, setValue)
 	if err != nil {
 		return err
 	}
-	db.LogI(fmt.Sprintf("success update: %v = %v", setCol, setValue))
+	db.LogI(fmt.Sprintf(constants.UpdateContextRespConst, setCol, setValue))
 	return nil
 }
 
 // удаление записи по значению value столбца column
-func DeleteContext(ctx context.Context, db model.DBLog, value int) error {
+func DeleteContext(ctx context.Context, db dblog.DBLog, value int) error {
 
-	_, err := db.Db.ExecContext(ctx, `delete from public."refresh_stream"
-	where "id" = $1`, value)
+	_, err := db.Db.ExecContext(ctx, constants.DeleteContextQueryConst, value)
 	if err != nil {
 		return err
 	}
-	db.LogI(fmt.Sprintf("success delete"))
+	db.LogI(fmt.Sprintf(constants.DeleteContextRespConst))
 	return nil
 }

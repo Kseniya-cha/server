@@ -1,4 +1,4 @@
-package model
+package dblog
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// проверка ошибки в случае, когда структура DBLog не инициализирована
 func LogBeforeDB(log *logrus.Logger, err error, action string) {
 	if err != nil {
 		log.Fatal(err)
@@ -32,8 +33,8 @@ func (db DBLog) LogPrintFat(err error) {
 	}
 }
 
-// проверка ошибки: если есть - печать сообщения в консоль и
-// в терминал, затем фатал, если нет: "success действие msg"
+// проверка ошибки: если есть - печать сообщения msg в консоль и
+// в терминал, затем фатал (err), если нет: "success действие msg"
 func (db DBLog) LogWriteIF(w http.ResponseWriter, err error, msg string) {
 	if err != nil {
 		db.LogWrite(w, fmt.Sprintf("fail %s", msg))

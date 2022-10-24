@@ -1,17 +1,22 @@
-package model
+package dblog
 
 import (
 	"io"
 	"os"
 
+	"github.com/Kseniya-cha/server/constants"
 	"github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"
 )
 
-func DefLog(level string) (*logrus.Logger, func()) {
-	file, err := os.OpenFile("out.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+type Logger struct {
+	*logrus.Logger
+}
+
+func NewLog(level string) (*logrus.Logger, func()) {
+	file, err := os.OpenFile(constants.FileNameConst, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		logrus.Fatalf("error opening file: %v", err)
+		logrus.Fatalf(constants.OpenFileErrConst, err)
 	}
 	close := func() {
 		file.Close()
@@ -21,8 +26,8 @@ func DefLog(level string) (*logrus.Logger, func()) {
 		Out:   io.MultiWriter(file, os.Stdout),
 		Level: initLogLevel(level),
 		Formatter: &easy.Formatter{
-			TimestampFormat: "2006-01-02 15:04:05",
-			LogFormat:       "[%lvl%]: (%time%) %msg%\n",
+			TimestampFormat: constants.ServTimestampFormatConst,
+			LogFormat:       constants.ServLogFormatConst,
 		},
 	}
 
