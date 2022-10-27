@@ -1,4 +1,4 @@
-package dblog
+package logger
 
 import (
 	"io"
@@ -9,17 +9,10 @@ import (
 	easy "github.com/t-tomalak/logrus-easy-formatter"
 )
 
-type Logger struct {
-	*logrus.Logger
-}
-
-func NewLog(level string) (*logrus.Logger, func()) {
+func NewLog(level string) *logrus.Logger {
 	file, err := os.OpenFile(constants.FileNameConst, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		logrus.Fatalf(constants.OpenFileErrConst, err)
-	}
-	close := func() {
-		file.Close()
 	}
 
 	log := &logrus.Logger{
@@ -31,11 +24,13 @@ func NewLog(level string) (*logrus.Logger, func()) {
 		},
 	}
 
-	return log, close
+	return log
 }
 
 func initLogLevel(level string) logrus.Level {
 	switch level {
+	case "FATAL":
+		return logrus.FatalLevel
 	case "ERROR":
 		return logrus.ErrorLevel
 	case "WARN":

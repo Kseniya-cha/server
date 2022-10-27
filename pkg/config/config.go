@@ -9,7 +9,6 @@ type Config struct {
 	Logger   `yaml:"logger"`
 	Server   `yaml:"server"`
 	ConfigDB `yaml:"database"`
-	TestConn `yaml:"testconn"`
 }
 
 // параметры логгера
@@ -27,19 +26,12 @@ type Server struct {
 
 // параметры базы данных
 type ConfigDB struct {
-	Port     string `yaml:"port" default:"5432"`
-	Host     string `yaml:"host"`
-	Db_name  string `yaml:"db_name"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-}
-
-// промежуток времени, через который происходит
-// проверка соединения с базой
-type TestConn struct {
-	TimeTest time.Duration `yaml:"timetest"`
-}
-
-type ConfigInt interface {
-	Config
+	Port                      string        `yaml:"port" default:"5432"`
+	Host                      string        `yaml:"host"`
+	Db_name                   string        `yaml:"db_name"`
+	User                      string        `yaml:"user"`
+	Password                  string        `yaml:"password"`
+	Driver                    string        `yaml:"driver"`
+	DBConnectionTimeoutSecond time.Duration `yaml:"dbconnectiontimeoutsecond"`
+	// DBConnectionLatencyMillisecond time.Duration `yaml:"dbconnectionlatencymillisecond"`
 }

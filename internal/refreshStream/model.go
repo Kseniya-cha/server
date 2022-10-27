@@ -1,4 +1,4 @@
-package refreshstream
+package refreshStream
 
 import "database/sql"
 
