@@ -157,60 +157,60 @@ func (s *refreshStreamHandler) PutHFJSON(ctx context.Context) func(http.Response
 			return
 		}
 
-		// выолнение запроса
+		// выполнение запроса
 		err = s.useCase.Update(ctx, "auth", rs.Auth.String, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "auth", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "ip", rs.Ip.String, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "ip", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "stream", rs.Stream.String, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "stream", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "run", rs.Run.String, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "run", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "portsrv", rs.Portsrv, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "portsrv", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "sp", rs.Sp.String, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "sp", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "camid", rs.Camid.String, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "camid", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "record_status", rs.Record_status.Bool, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "record_status", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "stream_status", rs.Stream_status.Bool, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "stream_status", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "record_state", rs.Record_state.Bool, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "record_state", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "stream_state", rs.Stream_state.Bool, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "stream_state", err))
 			return
 		}
 
@@ -240,59 +240,60 @@ func (s *refreshStreamHandler) PatchHFJSON(ctx context.Context) func(http.Respon
 			return
 		}
 
+		// выполнение запроса
 		err = s.useCase.Update(ctx, "auth", rs.Auth.String, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "auth", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "ip", rs.Ip.String, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "ip", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "stream", rs.Stream.String, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "stream", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "run", rs.Run.String, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "run", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "portsrv", rs.Portsrv, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "portsrv", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "sp", rs.Sp.String, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "sp", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "camid", rs.Camid.String, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "camid", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "record_status", rs.Record_status.Bool, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "record_status", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "stream_status", rs.Stream_status.Bool, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "stream_status", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "record_state", rs.Record_state.Bool, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "record_state", err))
 			return
 		}
 		err = s.useCase.Update(ctx, "stream_state", rs.Stream_state.Bool, id)
 		if err != nil {
-			logger.LogError(s.log, err)
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "stream_state", err))
 			return
 		}
 

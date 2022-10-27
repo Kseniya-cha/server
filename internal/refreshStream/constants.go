@@ -8,9 +8,10 @@ const (
 	GetIdHFRespOkConst  = "Success select by Id = %d!"
 	DeleteHFRespOkConst = "Success delete by Id = %d!"
 
-	PostHFAllColsConst   = `"auth","ip","stream","run","portsrv","sp","camid","record_status","stream_status","record_state","stream_state"`
-	PostHFAllValuesConst = `'%s','%s','%s','%s','%s','%s','%s','%v','%v','%v','%v'`
-	PostHFRespOkConst    = "Success post request"
+	PostHFAllColsConst    = `"auth","ip","stream","run","portsrv","sp","camid","record_status","stream_status","record_state","stream_state"`
+	PostHFAllValuesConst  = `'%s','%s','%s','%s','%s','%s','%s','%v','%v','%v','%v'`
+	PostHFRespOkConst     = "Success post request"
+	UpdateRespErrColConst = "cannot update %s: %v"
 
 	ConvertIdIntConst = "Success converse Id to int"
 	DecodeJsonConst   = "Success decode json"
