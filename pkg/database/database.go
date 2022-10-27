@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Kseniya-cha/server/constants"
 	"github.com/Kseniya-cha/server/pkg/config"
 	"github.com/Kseniya-cha/server/pkg/logger"
 	_ "github.com/lib/pq"
@@ -31,14 +30,17 @@ func connectToDB(dbcfg *ConfigDB) *sql.DB {
 	var db *sql.DB
 
 	// подключение к базе
-	sqlInfo := fmt.Sprintf(constants.OpenDBConst,
+	sqlInfo := fmt.Sprintf(DBInfoConst,
 		dbcfg.Host, dbcfg.Port, dbcfg.User, dbcfg.Password,
 		dbcfg.Db_name)
 
 	db, _ = sql.Open(dbcfg.Driver, sqlInfo)
 	time.Sleep(time.Millisecond * 3)
 	if db.Ping() == nil {
+		logger.LogDebug(dbcfg.Log, fmt.Sprintf(ConnectToDBOkConst, dbcfg.Db_name))
 		return db
+	} else {
+		logger.LogError(dbcfg.Log, ConnectToDBErrConst)
 	}
 
 	connLatency := time.Duration(10 * time.Millisecond)
@@ -46,21 +48,20 @@ func connectToDB(dbcfg *ConfigDB) *sql.DB {
 	connTimeout := dbcfg.DBConnectionTimeoutSecond
 	for t := connTimeout; t > 0; t-- {
 		if db != nil {
-			logger.LogDebug(dbcfg.Log, fmt.Sprintf("established opening of connection to DB at %v", time.Now()))
 			return db
 		}
 		time.Sleep(time.Second * 3)
 	}
 
-	logger.LogError(dbcfg.Log, fmt.Sprintf("time waiting of DB connection exceeded limit: %v", connTimeout))
+	logger.LogError(dbcfg.Log, fmt.Sprintf(WaitForBDErrConst, connTimeout))
 	return db
 }
 
 func CloseDBConnection(cfg *config.Config, db *sql.DB) {
 	log := logger.NewLog(cfg.LogLevel)
 	if err := db.Close(); err != nil {
-		logger.LogError(log, fmt.Sprintf("Cannot close DB connection. Error: %v", err))
+		logger.LogError(log, fmt.Sprintf(CloseDBErrConst, err))
 		return
 	}
-	logger.LogDebug(log, "established closing of connection to DB")
+	logger.LogDebug(log, CloseDBOkConst)
 }

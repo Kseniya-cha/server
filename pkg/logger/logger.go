@@ -4,23 +4,22 @@ import (
 	"io"
 	"os"
 
-	"github.com/Kseniya-cha/server/constants"
 	"github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"
 )
 
 func NewLog(level string) *logrus.Logger {
-	file, err := os.OpenFile(constants.FileNameConst, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(FileNameConst, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		logrus.Fatalf(constants.OpenFileErrConst, err)
+		logrus.Fatalf(OpenFileErrConst, err)
 	}
 
 	log := &logrus.Logger{
 		Out:   io.MultiWriter(file, os.Stdout),
 		Level: initLogLevel(level),
 		Formatter: &easy.Formatter{
-			TimestampFormat: constants.ServTimestampFormatConst,
-			LogFormat:       constants.ServLogFormatConst,
+			TimestampFormat: ServTimestampFormatConst,
+			LogFormat:       ServLogFormatConst,
 		},
 	}
 

@@ -33,5 +33,4 @@ type ConfigDB struct {
 	Password                  string        `yaml:"password"`
 	Driver                    string        `yaml:"driver"`
 	DBConnectionTimeoutSecond time.Duration `yaml:"dbconnectiontimeoutsecond"`
-	// DBConnectionLatencyMillisecond time.Duration `yaml:"dbconnectionlatencymillisecond"`
 }

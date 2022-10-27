@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Kseniya-cha/server/constants"
 	refreshStream "github.com/Kseniya-cha/server/internal/refreshStream"
 	"github.com/Kseniya-cha/server/pkg/logger"
 	"github.com/gorilla/mux"
@@ -44,8 +43,8 @@ func (s *refreshStreamHandler) GetAllHF(ctx context.Context) func(http.ResponseW
 		// вывод данных
 		logger.LogWriteDebug(s.log, w, fmt.Sprintf("%v", data))
 
-		// сообщение о завершении (код ошибки!!)
-		logger.LogWriteInfo(s.log, w, constants.GetAllHFRespOkConst)
+		// сообщение о завершении (добавить код ошибки!!)
+		logger.LogWriteInfo(s.log, w, refreshStream.GetHFRespOkConst)
 	}
 }
 
@@ -60,6 +59,8 @@ func (s *refreshStreamHandler) GetIdHF(ctx context.Context) func(http.ResponseWr
 		val, err := strconv.Atoi(value)
 		if err != nil {
 			logger.LogError(s.log, err)
+		} else {
+			logger.LogDebug(s.log, refreshStream.ConvertIdIntConst)
 		}
 
 		// запрос
@@ -72,8 +73,8 @@ func (s *refreshStreamHandler) GetIdHF(ctx context.Context) func(http.ResponseWr
 		// вывод данных
 		logger.LogWriteDebug(s.log, w, fmt.Sprintf("%v", data))
 
-		// сообщение о завершении (код ошибки!!)
-		logger.LogWriteInfo(s.log, w, fmt.Sprintf(constants.GetIdHFRespOkConst, val))
+		// сообщение о завершении (добавить код ошибки!!)
+		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.GetIdHFRespOkConst, val))
 	}
 }
 
@@ -87,6 +88,8 @@ func (s *refreshStreamHandler) DeleteIdHF(ctx context.Context) func(http.Respons
 		val, err := strconv.Atoi(value)
 		if err != nil {
 			logger.LogError(s.log, err)
+		} else {
+			logger.LogDebug(s.log, refreshStream.ConvertIdIntConst)
 		}
 
 		// запрос
@@ -96,8 +99,8 @@ func (s *refreshStreamHandler) DeleteIdHF(ctx context.Context) func(http.Respons
 			return
 		}
 
-		// сообщение о завершении (код ошибки!!)
-		logger.LogWriteInfo(s.log, w, fmt.Sprintf(constants.DeleteHFRespOkConst, val))
+		// сообщение о завершении (добавить код ошибки!!)
+		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.DeleteHFRespOkConst, val))
 	}
 }
 
@@ -114,10 +117,10 @@ func (s *refreshStreamHandler) PostHFJSON(ctx context.Context) func(http.Respons
 			logger.LogError(s.log, err)
 			return
 		}
-		logger.LogDebug(s.log, constants.DecodeJsonConst)
+		logger.LogDebug(s.log, refreshStream.DecodeJsonConst)
 
-		allcols := constants.PostHFAllColsConst
-		allvalues := fmt.Sprintf(constants.PostHFAllValuesConst,
+		allcols := refreshStream.PostHFAllColsConst
+		allvalues := fmt.Sprintf(refreshStream.PostHFAllValuesConst,
 			rs.Auth.String, rs.Ip.String, rs.Stream.String, rs.Run.String,
 			rs.Portsrv, rs.Sp.String, rs.Camid.String, rs.Record_status.Bool,
 			rs.Stream_status.Bool, rs.Record_state.Bool, rs.Stream_state.Bool)
@@ -128,8 +131,8 @@ func (s *refreshStreamHandler) PostHFJSON(ctx context.Context) func(http.Respons
 			logger.LogDebug(s.log, err)
 		}
 
-		// сообщение о завершении (код ошибки!!)
-		logger.LogWriteInfo(s.log, w, fmt.Sprintf(constants.PostHFRespOkConst))
+		// сообщение о завершении (добавить код ошибки!!)
+		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.PostHFRespOkConst))
 	}
 }
 
@@ -145,7 +148,7 @@ func (s *refreshStreamHandler) PutHFJSON(ctx context.Context) func(http.Response
 			logger.LogError(s.log, err)
 			return
 		}
-		logger.LogDebug(s.log, constants.DecodeJsonConst)
+		logger.LogDebug(s.log, refreshStream.DecodeJsonConst)
 
 		// извлечение id
 		id := rs.Id
@@ -211,8 +214,8 @@ func (s *refreshStreamHandler) PutHFJSON(ctx context.Context) func(http.Response
 			return
 		}
 
-		// сообщение о завершении (код ошибки!!)
-		logger.LogWriteInfo(s.log, w, fmt.Sprintf(constants.PostHFRespOkConst))
+		// сообщение о завершении (добавить код ошибки!!)
+		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.PostHFRespOkConst))
 	}
 }
 
@@ -229,7 +232,7 @@ func (s *refreshStreamHandler) PatchHFJSON(ctx context.Context) func(http.Respon
 			logger.LogError(s.log, err)
 			return
 		}
-		logger.LogDebug(s.log, constants.DecodeJsonConst)
+		logger.LogDebug(s.log, refreshStream.DecodeJsonConst)
 
 		id := rs.Id
 		if id == 0 {
@@ -293,7 +296,7 @@ func (s *refreshStreamHandler) PatchHFJSON(ctx context.Context) func(http.Respon
 			return
 		}
 
-		// сообщение о завершении (код ошибки!!)
-		logger.LogWriteInfo(s.log, w, fmt.Sprintf(constants.PostHFRespOkConst))
+		// сообщение о завершении (добавить код ошибки!!)
+		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.PostHFRespOkConst))
 	}
 }

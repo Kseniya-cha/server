@@ -15,6 +15,5 @@ type ConfigDB struct {
 
 	Driver                    string
 	DBConnectionTimeoutSecond time.Duration
-	// DBConnectionLatencyMillisecond time.Duration
-	Log *logrus.Logger
+	Log                       *logrus.Logger
 }

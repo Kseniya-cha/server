@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Kseniya-cha/server/constants"
 	"github.com/Kseniya-cha/server/internal/refreshStream"
 	"github.com/Kseniya-cha/server/internal/refreshStream/controller"
 	"github.com/Kseniya-cha/server/internal/refreshStream/repository"
@@ -62,9 +61,9 @@ func (a *app) RunServer() error {
 	// запуск сервера
 	err := a.http.ListenAndServe()
 	if err == http.ErrServerClosed {
-		logger.LogError(a.log, constants.ServCloseConst)
+		logger.LogError(a.log, ServCloseConst)
 	} else if err != nil {
-		logger.LogError(a.log, fmt.Sprintf(constants.ServErrConst, err))
+		logger.LogError(a.log, fmt.Sprintf(ServErrConst, err))
 	}
 
 	// завершение работы сервера
@@ -72,10 +71,10 @@ func (a *app) RunServer() error {
 	defer shutdown()
 
 	if err := a.http.Shutdown(ctx); err != nil {
-		return fmt.Errorf("cannot shut down the server correctly: %s", err)
+		return fmt.Errorf(ShutdownErrConst, err)
 	}
 
-	logger.LogInfo(a.log, "server was correctly shuted down")
+	logger.LogInfo(a.log, ShutdownOkConst)
 
 	return nil
 }
@@ -85,5 +84,5 @@ func (a *app) GracefulShutdown() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	sig := <-sigChan
-	logger.LogFatal(a.log, fmt.Sprintf(constants.SigConst, sig))
+	logger.LogFatal(a.log, fmt.Sprintf(SigConst, sig))
 }

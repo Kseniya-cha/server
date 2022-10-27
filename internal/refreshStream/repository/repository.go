@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Kseniya-cha/server/constants"
 	refreshStream "github.com/Kseniya-cha/server/internal/refreshStream"
 	"github.com/Kseniya-cha/server/pkg/logger"
 	"github.com/sirupsen/logrus"
@@ -26,10 +25,10 @@ func NewRefreshStreamRepository(db *sql.DB, log *logrus.Logger) *refreshStreamRe
 
 func (s refreshStreamRepository) Get(ctx context.Context) ([]refreshStream.RefreshStreamWithNull, error) {
 
-	logger.LogDebug(s.log, constants.GetSentRespConst)
-	rows, err := s.db.QueryContext(ctx, constants.GetQueryConst)
+	logger.LogDebug(s.log, refreshStream.GetSentRespConst)
+	rows, err := s.db.QueryContext(ctx, refreshStream.GetQueryConst)
 	if err != nil {
-		logger.LogError(s.log, err)
+		logger.LogError(s.log, refreshStream.GetRespErrConst)
 		return nil, err
 	}
 	defer rows.Close()
@@ -47,19 +46,19 @@ func (s refreshStreamRepository) Get(ctx context.Context) ([]refreshStream.Refre
 		}
 		refreshStreamArr = append(refreshStreamArr, rs)
 	}
-	logger.LogDebug(s.log, constants.GetIdRespConst)
+	logger.LogDebug(s.log, refreshStream.DBRespConst)
 	return refreshStreamArr, nil
 }
 
 func (s refreshStreamRepository) GetId(ctx context.Context,
 	value interface{}) (refreshStream.RefreshStreamWithNull, error) {
 
-	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(constants.GetIdQueryConst, "id"), value)
+	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(refreshStream.GetIDQueryConst, "id"), value)
 	if err != nil {
-		logger.LogError(s.log, "")
+		logger.LogError(s.log, refreshStream.GetRespErrConst)
 		return refreshStream.RefreshStreamWithNull{}, err
 	}
-	logger.LogDebug(s.log, constants.GetSentRespConst)
+	logger.LogDebug(s.log, refreshStream.GetSentRespConst)
 
 	rs := refreshStream.RefreshStreamWithNull{}
 	for rows.Next() {
@@ -73,11 +72,23 @@ func (s refreshStreamRepository) GetId(ctx context.Context,
 	}
 
 	if rs.Id == 0 {
-		return refreshStream.RefreshStreamWithNull{}, fmt.Errorf("this Id does not exist")
+		return refreshStream.RefreshStreamWithNull{}, fmt.Errorf(refreshStream.IDDoesNotExistConst)
 	}
 
-	logger.LogDebug(s.log, constants.GetIdRespConst)
+	logger.LogDebug(s.log, refreshStream.DBRespConst)
 	return rs, nil
+}
+
+// удаление записи по значению value столбца column
+func (s refreshStreamRepository) Delete(ctx context.Context, value int) error {
+
+	_, err := s.db.ExecContext(ctx, refreshStream.DeleteQueryConst, value)
+	if err != nil {
+		return fmt.Errorf(refreshStream.DeleteRespErrConst, err)
+	}
+
+	logger.LogDebug(s.log, fmt.Sprintf(refreshStream.DeleteRespConst))
+	return nil
 }
 
 func (s refreshStreamRepository) Insert(ctx context.Context,
@@ -85,15 +96,15 @@ func (s refreshStreamRepository) Insert(ctx context.Context,
 
 	valSlice := strings.Split(values, ", ")
 	if len(strings.Split(nameColumns, ", ")) != len(valSlice) {
-		return fmt.Errorf(constants.InsertRespErrConst)
+		return fmt.Errorf(refreshStream.InsertRespErrCountColsConst)
 	}
 
-	_, err := s.db.ExecContext(ctx, fmt.Sprintf(constants.InsertQueryConst, nameColumns, values))
+	_, err := s.db.ExecContext(ctx, fmt.Sprintf(refreshStream.InsertQueryConst, nameColumns, values))
 	if err != nil {
-		return err
+		return fmt.Errorf(refreshStream.InsertRespErrConst, err)
 	}
 
-	logger.LogDebug(s.log, "success insertn")
+	logger.LogDebug(s.log, refreshStream.InsertRespOkConst)
 	return nil
 }
 
@@ -101,27 +112,15 @@ func (s refreshStreamRepository) Insert(ctx context.Context,
 func (s refreshStreamRepository) Update(ctx context.Context, setCol string,
 	setValue, whereValue interface{}) error {
 
-	if whereValue == 0 {
-		return fmt.Errorf("this Id does not exist")
+	if whereValue == nil {
+		return fmt.Errorf(refreshStream.IDDoesNotExistConst)
 	}
 
-	_, err := s.db.ExecContext(ctx, fmt.Sprintf(constants.UpdateQueryConst, setCol), whereValue, setValue)
+	_, err := s.db.ExecContext(ctx, fmt.Sprintf(refreshStream.UpdateQueryConst, setCol), whereValue, setValue)
 	if err != nil {
-		return err
+		return fmt.Errorf(refreshStream.UpdateRespErrConst, err)
 	}
 
-	logger.LogDebug(s.log, fmt.Sprintf(constants.UpdateContextRespConst, setCol, setValue))
-	return nil
-}
-
-// удаление записи по значению value столбца column
-func (s refreshStreamRepository) Delete(ctx context.Context, value int) error {
-
-	_, err := s.db.ExecContext(ctx, constants.DeleteContextQueryConst, value)
-	if err != nil {
-		return err
-	}
-
-	logger.LogDebug(s.log, fmt.Sprintf(constants.DeleteContextRespConst))
+	logger.LogDebug(s.log, fmt.Sprintf(refreshStream.UpdateRespOkConst, setCol, setValue))
 	return nil
 }
