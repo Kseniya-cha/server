@@ -8,6 +8,7 @@ import (
 	"github.com/Kseniya-cha/server/pkg/config"
 	"github.com/Kseniya-cha/server/pkg/logger"
 	_ "github.com/lib/pq"
+	"gorm.io/gorm"
 )
 
 func CreateDBConnection(cfg *config.Config) *sql.DB {
@@ -20,25 +21,41 @@ func CreateDBConnection(cfg *config.Config) *sql.DB {
 	dbcfg.Password = cfg.Password
 
 	dbcfg.Driver = cfg.Driver
-	dbcfg.DBConnectionTimeoutSecond = 10 * time.Second //cfg.DBConnectionTimeoutSecond
+	dbcfg.DBConnectionTimeoutSecond = cfg.DBConnectionTimeoutSecond
 	dbcfg.Log = logger.NewLog(cfg.LogLevel)
 
 	return connectToDB(&dbcfg)
 }
 
 func connectToDB(dbcfg *ConfigDB) *sql.DB {
-	var db *sql.DB
+	var dbSQL *sql.DB
+	var dbGORM *gorm.DB
 
 	// подключение к базе
 	sqlInfo := fmt.Sprintf(DBInfoConst,
 		dbcfg.Host, dbcfg.Port, dbcfg.User, dbcfg.Password,
 		dbcfg.Db_name)
 
-	db, _ = sql.Open(dbcfg.Driver, sqlInfo)
+	dbSQL, err := sql.Open(dbcfg.Driver, sqlInfo)
+	if err != nil {
+		logger.LogError(dbcfg.Log, fmt.Sprintf(OpenDBErrConst, "sql"))
+	}
+
+	// dbGORM, err = gorm.Open(postgres.New(postgres.Config{
+	// 	Conn: dbSQL,
+	// }), &gorm.Config{})
+	// if err != nil {
+	// 	logger.LogError(dbcfg.Log, fmt.Sprintf(OpenDBErrConst, "gorm"))
+	// }
+
+	// автомиграция
+	// dbGORM.AutoMigrate(&refreshStream.RefreshStreamWithNull{})
+
+	// проверка подключения
 	time.Sleep(time.Millisecond * 3)
-	if db.Ping() == nil {
+	if dbGORM == nil {
 		logger.LogDebug(dbcfg.Log, fmt.Sprintf(ConnectToDBOkConst, dbcfg.Db_name))
-		return db
+		return dbSQL
 	} else {
 		logger.LogError(dbcfg.Log, ConnectToDBErrConst)
 	}
@@ -47,19 +64,20 @@ func connectToDB(dbcfg *ConfigDB) *sql.DB {
 	time.Sleep(connLatency * time.Millisecond)
 	connTimeout := dbcfg.DBConnectionTimeoutSecond
 	for t := connTimeout; t > 0; t-- {
-		if db != nil {
-			return db
+		if dbGORM != nil {
+			return dbSQL
 		}
 		time.Sleep(time.Second * 3)
 	}
 
 	logger.LogError(dbcfg.Log, fmt.Sprintf(WaitForBDErrConst, connTimeout))
-	return db
+	return dbSQL
 }
 
-func CloseDBConnection(cfg *config.Config, db *sql.DB) {
+// как закрыть? или не надо закрывать, раз нет такой функции?
+func CloseDBConnection(cfg *config.Config, dbSQL *sql.DB) {
 	log := logger.NewLog(cfg.LogLevel)
-	if err := db.Close(); err != nil {
+	if err := dbSQL.Close(); err != nil {
 		logger.LogError(log, fmt.Sprintf(CloseDBErrConst, err))
 		return
 	}

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	refreshStream "github.com/Kseniya-cha/server/internal/refreshStream"
 	"github.com/Kseniya-cha/server/pkg/logger"
@@ -29,7 +28,7 @@ func NewRefreshStreamHandler(useCase refreshStream.RefreshStreamUseCase, db *sql
 }
 
 // http://localhost:3333/api/get/
-func (s *refreshStreamHandler) GetAllHF(ctx context.Context) func(http.ResponseWriter, *http.Request) {
+func (s *refreshStreamHandler) GetHF(ctx context.Context) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -43,8 +42,8 @@ func (s *refreshStreamHandler) GetAllHF(ctx context.Context) func(http.ResponseW
 		// вывод данных
 		logger.LogWriteDebug(s.log, w, fmt.Sprintf("%v", data))
 
-		// сообщение о завершении (добавить код ошибки!!)
-		logger.LogWriteInfo(s.log, w, refreshStream.GetHFRespOkConst)
+		// сообщение о завершении
+		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.GetHFRespOkConst, http.StatusOK))
 	}
 }
 
@@ -54,17 +53,17 @@ func (s *refreshStreamHandler) GetIdHF(ctx context.Context) func(http.ResponseWr
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// извлечение и парсинг id
+		// извлечение
 		value := mux.Vars(r)["ID"]
-		val, err := strconv.Atoi(value)
-		if err != nil {
-			logger.LogError(s.log, err)
-		} else {
-			logger.LogDebug(s.log, refreshStream.ConvertIdIntConst)
-		}
+		// val, err := strconv.Atoi(value)
+		// if err != nil {
+		// 	logger.LogError(s.log, err)
+		// } else {
+		// 	logger.LogDebug(s.log, refreshStream.ConvertIdIntConst)
+		// }
 
 		// запрос
-		data, err := s.useCase.GetId(ctx, val)
+		data, err := s.useCase.GetId(ctx, value)
 		if err != nil {
 			logger.LogError(s.log, err)
 			return
@@ -73,8 +72,8 @@ func (s *refreshStreamHandler) GetIdHF(ctx context.Context) func(http.ResponseWr
 		// вывод данных
 		logger.LogWriteDebug(s.log, w, fmt.Sprintf("%v", data))
 
-		// сообщение о завершении (добавить код ошибки!!)
-		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.GetIdHFRespOkConst, val))
+		// сообщение о завершении
+		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.GetIdHFRespOkConst, value, http.StatusOK))
 	}
 }
 
@@ -85,22 +84,22 @@ func (s *refreshStreamHandler) DeleteIdHF(ctx context.Context) func(http.Respons
 
 		// извлечение и парсинг id
 		value := mux.Vars(r)["ID"]
-		val, err := strconv.Atoi(value)
-		if err != nil {
-			logger.LogError(s.log, err)
-		} else {
-			logger.LogDebug(s.log, refreshStream.ConvertIdIntConst)
-		}
+		// val, err := strconv.Atoi(value)
+		// if err != nil {
+		// 	logger.LogError(s.log, err)
+		// } else {
+		// 	logger.LogDebug(s.log, refreshStream.ConvertIdIntConst)
+		// }
 
 		// запрос
-		err = s.useCase.Delete(ctx, val)
+		err := s.useCase.Delete(ctx, value)
 		if err != nil {
 			logger.LogError(s.log, err)
 			return
 		}
 
-		// сообщение о завершении (добавить код ошибки!!)
-		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.DeleteHFRespOkConst, val))
+		// сообщение о завершении
+		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.DeleteHFRespOkConst, value, http.StatusOK))
 	}
 }
 
@@ -111,7 +110,7 @@ func (s *refreshStreamHandler) PostHFJSON(ctx context.Context) func(http.Respons
 
 		// преобразование полученного json-файла и обработка ошибки
 		decoder := json.NewDecoder(r.Body)
-		var rs refreshStream.RefreshStreamWithNull
+		var rs *refreshStream.RefreshStreamWithNull
 		err := decoder.Decode(&rs)
 		if err != nil {
 			logger.LogError(s.log, err)
@@ -119,20 +118,14 @@ func (s *refreshStreamHandler) PostHFJSON(ctx context.Context) func(http.Respons
 		}
 		logger.LogDebug(s.log, refreshStream.DecodeJsonConst)
 
-		allcols := refreshStream.PostHFAllColsConst
-		allvalues := fmt.Sprintf(refreshStream.PostHFAllValuesConst,
-			rs.Auth.String, rs.Ip.String, rs.Stream.String, rs.Run.String,
-			rs.Portsrv, rs.Sp.String, rs.Camid.String, rs.Record_status.Bool,
-			rs.Stream_status.Bool, rs.Record_state.Bool, rs.Stream_state.Bool)
-
 		// вставка данных и обработка ошибки
-		err = s.useCase.Insert(ctx, allcols, allvalues)
+		err = s.useCase.Insert(ctx, rs)
 		if err != nil {
 			logger.LogDebug(s.log, err)
 		}
 
-		// сообщение о завершении (добавить код ошибки!!)
-		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.PostHFRespOkConst))
+		// сообщение о завершении
+		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.PostHFRespOkConst, http.StatusOK))
 	}
 }
 
@@ -142,7 +135,7 @@ func (s *refreshStreamHandler) PutHFJSON(ctx context.Context) func(http.Response
 	return func(w http.ResponseWriter, r *http.Request) {
 		// преобразование полученного json-файла и обработка ошибки
 		decoder := json.NewDecoder(r.Body)
-		var rs refreshStream.RefreshStreamWithNull
+		var rs *refreshStream.RefreshStreamWithNull
 		err := decoder.Decode(&rs)
 		if err != nil {
 			logger.LogError(s.log, err)
@@ -150,72 +143,15 @@ func (s *refreshStreamHandler) PutHFJSON(ctx context.Context) func(http.Response
 		}
 		logger.LogDebug(s.log, refreshStream.DecodeJsonConst)
 
-		// извлечение id
-		id := rs.Id
-		if id == 0 {
-			logger.LogError(s.log, "this Id does not exist!")
-			return
-		}
-
 		// выполнение запроса
-		err = s.useCase.Update(ctx, "auth", rs.Auth.String, id)
+		err = s.useCase.Update(ctx, rs)
 		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "auth", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "ip", rs.Ip.String, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "ip", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "stream", rs.Stream.String, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "stream", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "run", rs.Run.String, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "run", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "portsrv", rs.Portsrv, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "portsrv", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "sp", rs.Sp.String, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "sp", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "camid", rs.Camid.String, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "camid", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "record_status", rs.Record_status.Bool, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "record_status", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "stream_status", rs.Stream_status.Bool, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "stream_status", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "record_state", rs.Record_state.Bool, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "record_state", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "stream_state", rs.Stream_state.Bool, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "stream_state", err))
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.PutRespErrColConst, err))
 			return
 		}
 
-		// сообщение о завершении (добавить код ошибки!!)
-		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.PostHFRespOkConst))
+		// сообщение о завершении
+		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.PutHFRespOkConst, http.StatusOK))
 	}
 }
 
@@ -226,78 +162,23 @@ func (s *refreshStreamHandler) PatchHFJSON(ctx context.Context) func(http.Respon
 
 		// преобразование полученного json-файла и обработка ошибки
 		decoder := json.NewDecoder(r.Body)
-		var rs refreshStream.RefreshStreamWithNull
+		var rs *refreshStream.RefreshStreamWithNull
 		err := decoder.Decode(&rs)
 		if err != nil {
 			logger.LogError(s.log, err)
 			return
 		}
 		logger.LogDebug(s.log, refreshStream.DecodeJsonConst)
-
-		id := rs.Id
-		if id == 0 {
-			logger.LogError(s.log, "this Id does not exist!")
-			return
-		}
+		fmt.Println(rs)
 
 		// выполнение запроса
-		err = s.useCase.Update(ctx, "auth", rs.Auth.String, id)
+		err = s.useCase.Update(ctx, rs)
 		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "auth", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "ip", rs.Ip.String, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "ip", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "stream", rs.Stream.String, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "stream", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "run", rs.Run.String, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "run", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "portsrv", rs.Portsrv, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "portsrv", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "sp", rs.Sp.String, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "sp", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "camid", rs.Camid.String, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "camid", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "record_status", rs.Record_status.Bool, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "record_status", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "stream_status", rs.Stream_status.Bool, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "stream_status", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "record_state", rs.Record_state.Bool, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "record_state", err))
-			return
-		}
-		err = s.useCase.Update(ctx, "stream_state", rs.Stream_state.Bool, id)
-		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.UpdateRespErrColConst, "stream_state", err))
+			logger.LogError(s.log, fmt.Sprintf(refreshStream.PutRespErrColConst, err))
 			return
 		}
 
-		// сообщение о завершении (добавить код ошибки!!)
-		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.PostHFRespOkConst))
+		// сообщение о завершении
+		logger.LogWriteInfo(s.log, w, fmt.Sprintf(refreshStream.PatchHFRespOkConst, http.StatusOK))
 	}
 }

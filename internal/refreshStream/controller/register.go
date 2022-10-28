@@ -15,7 +15,7 @@ func RegisterRouter(router *mux.Router, useCase refreshStream.RefreshStreamUseCa
 	ctx := context.Background()
 	h := NewRefreshStreamHandler(useCase, db, log)
 
-	hfSelect := h.GetAllHF(ctx)
+	hfSelect := h.GetHF(ctx)
 	router.HandleFunc(refreshStream.URLApiConst, hfSelect).Methods("GET")
 
 	// http://localhost:3333/api/3/
