@@ -126,10 +126,10 @@ func (s refreshStreamRepository) Update(ctx context.Context, rs *refreshStream.R
 		fmt.Sprintf("%s=$6, ", refreshStream.PortsrvConst) +
 		fmt.Sprintf("%v=CASE WHEN $7 <> '' THEN $7 ELSE '' END, ", refreshStream.SpConst) +
 		fmt.Sprintf("%v=CASE WHEN $8 <> '' THEN $8 ELSE '' END, ", refreshStream.CamidConst) +
-		fmt.Sprintf("%v=CASE WHEN $9 <> false THEN $13 ELSE false END, ", refreshStream.RecordStatusConst) +
-		fmt.Sprintf("%v=CASE WHEN $10 <> false THEN $14 ELSE false END, ", refreshStream.StreamStatusConst) +
-		fmt.Sprintf("%v=CASE WHEN $11 <> false THEN $15 ELSE false END, ", refreshStream.RecordStateConst) +
-		fmt.Sprintf("%v=CASE WHEN $12 <> false THEN $16 ELSE false END", refreshStream.StreamStateConst)
+		fmt.Sprintf("%v=CASE WHEN $9 <> false THEN $13 ELSE NULL::boolean END, ", refreshStream.RecordStatusConst) +
+		fmt.Sprintf("%v=CASE WHEN $10 <> false THEN $14 ELSE NULL::boolean END, ", refreshStream.StreamStatusConst) +
+		fmt.Sprintf("%v=CASE WHEN $11 <> false THEN $15 ELSE NULL::boolean END, ", refreshStream.RecordStateConst) +
+		fmt.Sprintf("%v=CASE WHEN $12 <> false THEN $16 ELSE NULL::boolean END", refreshStream.StreamStateConst)
 	cnd := fmt.Sprintf("%s=$4", refreshStream.IdConst)
 	query := fmt.Sprintf(template, val, cnd)
 	fmt.Println(query)
