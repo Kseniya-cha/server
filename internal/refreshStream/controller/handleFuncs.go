@@ -27,7 +27,6 @@ func NewRefreshStreamHandler(useCase refreshStream.RefreshStreamUseCase, db *sql
 	}
 }
 
-// http://localhost:3333/api/get/
 func (s *refreshStreamHandler) GetHF(ctx context.Context) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -47,20 +46,12 @@ func (s *refreshStreamHandler) GetHF(ctx context.Context) func(http.ResponseWrit
 	}
 }
 
-// показать все строки по значению id
-// http://localhost:3333/api/get/3/
 func (s *refreshStreamHandler) GetIdHF(ctx context.Context) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// извлечение
+		// извлечение Id
 		value := mux.Vars(r)["ID"]
-		// val, err := strconv.Atoi(value)
-		// if err != nil {
-		// 	logger.LogError(s.log, err)
-		// } else {
-		// 	logger.LogDebug(s.log, refreshStream.ConvertIdIntConst)
-		// }
 
 		// запрос
 		data, err := s.useCase.GetId(ctx, value)
@@ -77,19 +68,12 @@ func (s *refreshStreamHandler) GetIdHF(ctx context.Context) func(http.ResponseWr
 	}
 }
 
-// http://localhost:3333/api/delete/3/
 func (s *refreshStreamHandler) DeleteIdHF(ctx context.Context) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// извлечение и парсинг id
+		// извлечение Id
 		value := mux.Vars(r)["ID"]
-		// val, err := strconv.Atoi(value)
-		// if err != nil {
-		// 	logger.LogError(s.log, err)
-		// } else {
-		// 	logger.LogDebug(s.log, refreshStream.ConvertIdIntConst)
-		// }
 
 		// запрос
 		err := s.useCase.Delete(ctx, value)
@@ -103,7 +87,6 @@ func (s *refreshStreamHandler) DeleteIdHF(ctx context.Context) func(http.Respons
 	}
 }
 
-// вставить строку с помощью json-файла
 func (s *refreshStreamHandler) PostHFJSON(ctx context.Context) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -129,10 +112,10 @@ func (s *refreshStreamHandler) PostHFJSON(ctx context.Context) func(http.Respons
 	}
 }
 
-// изменение строки
 func (s *refreshStreamHandler) PutHFJSON(ctx context.Context) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		// преобразование полученного json-файла и обработка ошибки
 		decoder := json.NewDecoder(r.Body)
 		var rs *refreshStream.RefreshStreamWithNull
@@ -146,7 +129,7 @@ func (s *refreshStreamHandler) PutHFJSON(ctx context.Context) func(http.Response
 		// выполнение запроса
 		err = s.useCase.Update(ctx, rs)
 		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.PutRespErrColConst, err))
+			logger.LogError(s.log, err)
 			return
 		}
 
@@ -155,7 +138,6 @@ func (s *refreshStreamHandler) PutHFJSON(ctx context.Context) func(http.Response
 	}
 }
 
-// частичное изменение строки по id
 func (s *refreshStreamHandler) PatchHFJSON(ctx context.Context) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -169,12 +151,11 @@ func (s *refreshStreamHandler) PatchHFJSON(ctx context.Context) func(http.Respon
 			return
 		}
 		logger.LogDebug(s.log, refreshStream.DecodeJsonConst)
-		fmt.Println(rs)
 
 		// выполнение запроса
 		err = s.useCase.Update(ctx, rs)
 		if err != nil {
-			logger.LogError(s.log, fmt.Sprintf(refreshStream.PutRespErrColConst, err))
+			logger.LogError(s.log, err)
 			return
 		}
 

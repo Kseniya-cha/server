@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strings"
 
 	refreshStream "github.com/Kseniya-cha/server/internal/refreshStream"
 	"github.com/Kseniya-cha/server/pkg/logger"
@@ -25,8 +24,12 @@ func NewRefreshStreamRepository(db *sql.DB, log *logrus.Logger) *refreshStreamRe
 
 func (s refreshStreamRepository) Get(ctx context.Context) ([]refreshStream.RefreshStreamWithNull, error) {
 
-	logger.LogDebug(s.log, refreshStream.GetSentRespConst)
-	rows, err := s.db.QueryContext(ctx, refreshStream.GetQueryConst)
+	template := refreshStream.SELECT_COL_FROM_TBL
+	chose := "*"
+	tbl := `public."refresh_stream"`
+	query := fmt.Sprintf(template, chose, tbl)
+
+	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
 		logger.LogError(s.log, refreshStream.GetRespErrConst)
 		return nil, err
@@ -53,12 +56,17 @@ func (s refreshStreamRepository) Get(ctx context.Context) ([]refreshStream.Refre
 func (s refreshStreamRepository) GetId(ctx context.Context,
 	id interface{}) (refreshStream.RefreshStreamWithNull, error) {
 
-	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(refreshStream.GetIDQueryConst, "id"), id)
+	template := refreshStream.SELECT_COL_FROM_TBL_WHERE_CND
+	chose := "*"
+	tbl := `public."refresh_stream"`
+	cnd := fmt.Sprintf("%s=%d", refreshStream.IdConst, id)
+	query := fmt.Sprintf(template, chose, tbl, cnd)
+
+	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
 		logger.LogError(s.log, refreshStream.GetRespErrConst)
 		return refreshStream.RefreshStreamWithNull{}, err
 	}
-	logger.LogDebug(s.log, refreshStream.GetSentRespConst)
 
 	rs := refreshStream.RefreshStreamWithNull{}
 	for rows.Next() {
@@ -79,10 +87,14 @@ func (s refreshStreamRepository) GetId(ctx context.Context,
 	return rs, nil
 }
 
-// удаление записи по значению value столбца column
 func (s refreshStreamRepository) Delete(ctx context.Context, id interface{}) error {
 
-	_, err := s.db.ExecContext(ctx, refreshStream.DeleteQueryConst, id)
+	template := refreshStream.DELETE_FROM_TBL_WHERE_CND
+	tbl := `public."refresh_stream"`
+	cnd := fmt.Sprintf("%s=%d", refreshStream.IdConst, id)
+	query := fmt.Sprintf(template, tbl, cnd)
+
+	_, err := s.db.ExecContext(ctx, query)
 	if err != nil {
 		return fmt.Errorf(refreshStream.DeleteRespErrConst, err)
 	}
@@ -94,19 +106,22 @@ func (s refreshStreamRepository) Delete(ctx context.Context, id interface{}) err
 func (s refreshStreamRepository) Insert(ctx context.Context,
 	rs *refreshStream.RefreshStreamWithNull) error {
 
-	allcols := refreshStream.PostHFAllColsConst
-	allvalues := fmt.Sprintf(refreshStream.PostHFAllValuesConst,
+	template := refreshStream.INSERT_INTO_TBL_VALUES_VAL
+	tbl := `public."refresh_stream"`
+	cols := fmt.Sprintf(refreshStream.AuthConst) + "," + fmt.Sprintf(refreshStream.IpConst) + "," +
+		fmt.Sprintf(refreshStream.StreamConst) + "," + fmt.Sprintf(refreshStream.RunConst) + "," +
+		fmt.Sprintf(refreshStream.PortsrvConst) + "," + fmt.Sprintf(refreshStream.SpConst) + "," +
+		fmt.Sprintf(refreshStream.CamidConst) + "," + fmt.Sprintf(refreshStream.RecordStatusConst) + "," +
+		fmt.Sprintf(refreshStream.StreamStatusConst) + "," + fmt.Sprintf(refreshStream.RecordStateConst) + "," +
+		fmt.Sprintf(refreshStream.StreamStateConst)
+	vals := fmt.Sprintf(refreshStream.UpdateHFAllValuesConst,
 		rs.Auth.String, rs.Ip.String, rs.Stream.String, rs.Run.String,
 		rs.Portsrv, rs.Sp.String, rs.Camid.String, rs.Record_status.Bool,
 		rs.Stream_status.Bool, rs.Record_state.Bool, rs.Stream_state.Bool)
 
-	// проверка, что число строк совпадает с числом значений
-	valSlice := strings.Split(allvalues, ", ")
-	if len(strings.Split(allcols, ", ")) != len(valSlice) {
-		return fmt.Errorf(refreshStream.InsertRespErrCountColsConst)
-	}
+	query := fmt.Sprintf(template, tbl, cols, vals)
 
-	_, err := s.db.ExecContext(ctx, fmt.Sprintf(refreshStream.InsertQueryConst, allcols, allvalues))
+	_, err := s.db.ExecContext(ctx, query)
 	if err != nil {
 		return fmt.Errorf(refreshStream.InsertRespErrConst, err)
 	}
@@ -115,7 +130,6 @@ func (s refreshStreamRepository) Insert(ctx context.Context,
 	return nil
 }
 
-// изменяет одну ячейку
 func (s refreshStreamRepository) Update(ctx context.Context, rs *refreshStream.RefreshStreamWithNull) error {
 
 	template := refreshStream.UPDATE_TBL_SET_VAL_WHERE_CND
@@ -132,7 +146,6 @@ func (s refreshStreamRepository) Update(ctx context.Context, rs *refreshStream.R
 		fmt.Sprintf("%v=CASE WHEN $12 <> false THEN $16 ELSE NULL::boolean END", refreshStream.StreamStateConst)
 	cnd := fmt.Sprintf("%s=$4", refreshStream.IdConst)
 	query := fmt.Sprintf(template, val, cnd)
-	fmt.Println(query)
 
 	_, err := s.db.ExecContext(ctx, query, rs.Auth.String, rs.Ip.String,
 		rs.Stream.String, rs.Id, rs.Run.String, rs.Portsrv, rs.Sp.String,
